@@ -4,14 +4,14 @@
 const std = @import("std");
 const log = std.log;
 const mem = std.mem;
-const rating = @import("rating.zig");
+const ranking = @import("ranking.zig");
 const matchmaking = @import("matchmaking.zig");
 
 const usage =
     \\USAGE: openmmr <subcommand> [<file>]
     \\
     \\SUBCOMMANDS:
-    \\  rank:            calculate rating for every player
+    \\  rank:            calculate ratings for every player
     \\  teams:           generate all the possible teams sorted from the most balanced to the most imbalanced
     \\  teams-from-rank: generate teams from rank
     \\  help:            print help
@@ -62,9 +62,9 @@ pub fn main() !void {
     defer file.close();
     const reader = file.reader();
     if (mem.eql(u8, cmd, "rank")) {
-        const score_by_player = try rating.scoreByPlayerFromGames(allocator, reader);
-        const players = try rating.scoreByPlayerToSliceOfPlayers(allocator, score_by_player);
-        try rating.printRatings(players);
+        const score_by_player = try ranking.scoreByPlayerFromGames(allocator, reader);
+        const players = try ranking.scoreByPlayerToSliceOfPlayers(allocator, score_by_player);
+        try ranking.printRatings(players);
     } else if (mem.eql(u8, cmd, "teams-from-rank")) {
         const players = try matchmaking.readScores(allocator, reader);
         if (players.len > 64) {
@@ -73,8 +73,8 @@ pub fn main() !void {
         }
         try matchmaking.teams(players);
     } else if (mem.eql(u8, cmd, "teams")) {
-        const score_by_player = try rating.scoreByPlayerFromGames(allocator, reader);
-        const players = try rating.scoreByPlayerToSliceOfPlayers(allocator, score_by_player);
+        const score_by_player = try ranking.scoreByPlayerFromGames(allocator, reader);
+        const players = try ranking.scoreByPlayerToSliceOfPlayers(allocator, score_by_player);
         if (players.len > 64) {
             try stderr.print("error: too many players\n", .{});
             return;
