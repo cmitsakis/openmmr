@@ -1,6 +1,6 @@
 // Code copied from https://www.csie.ntu.edu.tw/~cjlin/papers/online_ranking/
 // Licensed under the terms of the BSD-3-Clause license.
-// You can find the full text of the license in the file "weng_lin_license".
+// You can find the full text of the license in the file "LICENSE" in the current directory.
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
