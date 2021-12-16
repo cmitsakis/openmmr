@@ -78,6 +78,11 @@ openmmr rank games.txt > ratings.txt
 openmmr teams-from-rank ratings.txt
 ```
 
+Or you can use "-" to read from the standard input like this:
+```sh
+openmmr rank games.txt | openmmr teams-from-rank -
+```
+
 ## Supported platforms
 
 *Linux*, *Windows 8.1+*, *macOS 10.13+*
