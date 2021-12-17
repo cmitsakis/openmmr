@@ -22,9 +22,11 @@ pub fn printTeams(players: []types.Player) !void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     defer arena.deinit();
     const allocator = &arena.allocator;
+
     if ((players.len / 2) * 2 != players.len) {
         return error.UnequalTeams;
     }
+
     var total_rating_mu: f64 = 0;
     for (players) |player| {
         total_rating_mu += player.rating.mu;

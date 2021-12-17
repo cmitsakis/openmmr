@@ -62,6 +62,7 @@ pub fn main() !void {
     const file = if (!mem.eql(u8, filename, "-")) try std.fs.cwd().openFile(filename, .{}) else std.io.getStdIn();
     defer if (!mem.eql(u8, filename, "-")) file.close();
     const reader = file.reader();
+
     if (mem.eql(u8, cmd, "rank")) {
         const score_by_player = try ranking.scoreByPlayerFromGames(allocator, reader);
         const players = try ranking.scoreByPlayerToSliceOfPlayers(allocator, score_by_player);
