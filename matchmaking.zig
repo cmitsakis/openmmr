@@ -40,11 +40,7 @@ pub fn printTeams(players: []types.Player) !void {
     var team_assignments = std.ArrayList(Assignment).init(allocator);
     var buf: [64]u8 = undefined;
     var b = b_start;
-    while (true) {
-        b = nextBinary(b);
-        if (b > b_end) {
-            break;
-        }
+    while (b <= b_end) : (b = nextBinary(b)) {
         if (b & 1 == 1) {
             continue;
         }
@@ -71,10 +67,7 @@ pub fn printTeams(players: []types.Player) !void {
         var team_1_players = std.ArrayList(types.Username).init(allocator_assignment);
         b = assignment.binary;
         var i: usize = 0;
-        while (true) {
-            if (i >= players.len) {
-                break;
-            }
+        while (i < players.len) {
             if (b & 1 == 0) {
                 try team_0_players.append(players[i].username);
             } else {
