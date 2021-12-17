@@ -72,7 +72,7 @@ pub fn main() !void {
             try stderr.print("error: too many players\n", .{});
             return;
         }
-        try matchmaking.teams(players);
+        try matchmaking.printTeams(players);
     } else if (mem.eql(u8, cmd, "teams")) {
         const score_by_player = try ranking.scoreByPlayerFromGames(allocator, reader);
         const players = try ranking.scoreByPlayerToSliceOfPlayers(allocator, score_by_player);
@@ -80,7 +80,7 @@ pub fn main() !void {
             try stderr.print("error: too many players\n", .{});
             return;
         }
-        try matchmaking.teams(players);
+        try matchmaking.printTeams(players);
     } else {
         try stderr.print("error: unknown command", .{});
         try stderr.print("{s}\n", .{usage});

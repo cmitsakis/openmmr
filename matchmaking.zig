@@ -18,7 +18,7 @@ const Assignment = struct {
     }
 };
 
-pub fn teams(players: []types.Player) !void {
+pub fn printTeams(players: []types.Player) !void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     defer arena.deinit();
     const allocator = &arena.allocator;
