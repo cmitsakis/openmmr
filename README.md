@@ -71,6 +71,14 @@ output:
 [john elisa mary]  vs  [thomas alice bob]  82.27 vs 67.73  14.55
 ```
 
+This command won't work if the file `games.txt` contains an odd number of players.
+In that case you can exclude one or more players like this:
+
+```sh
+openmmr teams --exclude john,elisa games.txt
+openmmr teams --include alice,bob,thomas,mary games.txt
+```
+
 You can also generate teams by using as input a file that contains ratings (instead of games) like this:
 
 ```sh

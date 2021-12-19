@@ -6,6 +6,7 @@ const log = std.log;
 const mem = std.mem;
 const ranking = @import("ranking.zig");
 const matchmaking = @import("matchmaking.zig");
+const types = @import("types.zig");
 
 const usage =
     \\USAGE: openmmr <subcommand> [<file>]
@@ -17,6 +18,8 @@ const usage =
     \\  help:            print help
     \\  license:         print license
 ;
+
+const emptyStruct = struct {};
 
 pub fn main() !void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
@@ -51,13 +54,42 @@ pub fn main() !void {
         return;
     }
 
-    if (args.len != 3) {
-        try stderr.print("error: too many arguments\n", .{});
-        try stderr.print("{s}\n", .{usage});
-        return;
+    var players_included = std.StringHashMap(emptyStruct).init(allocator);
+    var players_excluded = std.StringHashMap(emptyStruct).init(allocator);
+    if (args.len > 3) {
+        var included_or_excluded: i32 = 0;
+        var i: usize = 2;
+        while (i < args.len - 1) : (i += 1) {
+            const arg = args[i];
+            if (mem.eql(u8, arg, "--include") or mem.eql(u8, arg, "--exclude")) {
+                if (included_or_excluded != 0) {
+                    try stderr.print("cannot use both --include and --exclude options\n", .{});
+                    return;
+                }
+                included_or_excluded = if (mem.eql(u8, arg, "--include")) 1 else -1;
+                i += 1;
+                if (i == args.len - 1) {
+                    try stderr.print("no file argument given\n", .{});
+                    return;
+                }
+                var usernames = std.mem.tokenize(args[i], ",");
+                while (usernames.next()) |username| {
+                    switch (included_or_excluded) {
+                        1 => try players_included.put(username, .{}),
+                        -1 => try players_excluded.put(username, .{}),
+                        else => {
+                            unreachable;
+                        },
+                    }
+                }
+            } else {
+                try stderr.print("invalid argument: {s}\n", .{args[i]});
+                return;
+            }
+        }
     }
 
-    const filename = args[2];
+    const filename = args[args.len - 1];
     // open file or stdin (if filename == "-")
     const file = if (!mem.eql(u8, filename, "-")) try std.fs.cwd().openFile(filename, .{}) else std.io.getStdIn();
     defer if (!mem.eql(u8, filename, "-")) file.close();
@@ -65,25 +97,61 @@ pub fn main() !void {
 
     if (mem.eql(u8, cmd, "rank")) {
         const score_by_player = try ranking.scoreByPlayerFromGames(allocator, reader);
-        const players = try ranking.scoreByPlayerToSliceOfPlayers(allocator, score_by_player);
+        const players_unfiltered = try ranking.scoreByPlayerToSliceOfPlayers(allocator, score_by_player);
+        const players = try filterPlayersExclude(allocator, try filterPlayersInclude(allocator, players_unfiltered, players_included), players_excluded);
         try ranking.printRatings(players);
     } else if (mem.eql(u8, cmd, "teams-from-rank")) {
-        const players = try matchmaking.readScores(allocator, reader);
+        const players_unfiltered = try matchmaking.readScores(allocator, reader);
+        const players = try filterPlayersExclude(allocator, try filterPlayersInclude(allocator, players_unfiltered, players_included), players_excluded);
         if (players.len > 64) {
             try stderr.print("error: too many players\n", .{});
             return;
         }
         try matchmaking.printTeams(players);
     } else if (mem.eql(u8, cmd, "teams")) {
+        var players_included_iterator = players_included.iterator();
+        while (players_included_iterator.next()) |p| {
+            try stdout.print("included: {s}\n", .{p.key_ptr.*});
+        }
         const score_by_player = try ranking.scoreByPlayerFromGames(allocator, reader);
-        const players = try ranking.scoreByPlayerToSliceOfPlayers(allocator, score_by_player);
+        const players_unfiltered = try ranking.scoreByPlayerToSliceOfPlayers(allocator, score_by_player);
+        const players = try filterPlayersExclude(allocator, try filterPlayersInclude(allocator, players_unfiltered, players_included), players_excluded);
         if (players.len > 64) {
             try stderr.print("error: too many players\n", .{});
             return;
+        }
+        for (players) |player| {
+            try stdout.print("player: {s}\n", .{player.username});
         }
         try matchmaking.printTeams(players);
     } else {
         try stderr.print("error: unknown command", .{});
         try stderr.print("{s}\n", .{usage});
     }
+}
+
+fn filterPlayersInclude(allocator: *std.mem.Allocator, players: []types.Player, included: std.StringHashMap(emptyStruct)) ![]types.Player {
+    if (included.count() == 0) {
+        return players;
+    }
+    var players2 = std.ArrayList(types.Player).init(allocator);
+    for (players) |player| {
+        if (included.get(player.username)) |_| {
+            try players2.append(player);
+        }
+    }
+    return players2.toOwnedSlice();
+}
+
+fn filterPlayersExclude(allocator: *std.mem.Allocator, players: []types.Player, excluded: std.StringHashMap(emptyStruct)) ![]types.Player {
+    if (excluded.count() == 0) {
+        return players;
+    }
+    var players2 = std.ArrayList(types.Player).init(allocator);
+    for (players) |player| {
+        if (excluded.get(player.username)) |_| {} else {
+            try players2.append(player);
+        }
+    }
+    return players2.toOwnedSlice();
 }
