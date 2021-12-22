@@ -120,9 +120,6 @@ pub fn main() !void {
             try stderr.print("error: too many players\n", .{});
             return;
         }
-        for (players) |player| {
-            try stdout.print("player: {s}\n", .{player.username});
-        }
         try matchmaking.printTeams(players);
     } else {
         try stderr.print("error: unknown command", .{});
