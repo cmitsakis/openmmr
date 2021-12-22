@@ -120,7 +120,16 @@ pub fn main() !void {
             try stderr.print("error: too many players\n", .{});
             return;
         }
-        try matchmaking.printTeams(players);
+        matchmaking.printTeams(players) catch |err| switch (err) {
+            error.OddNumOfPlayers => try stderr.print(
+                \\error: input file contains an odd number of players.
+                \\Use the --exclude or --include options to get an even number of players like this:
+                \\openmmr teams --exclude john,elisa games.txt
+                \\openmmr teams --include alice,bob,thomas,mary games.txt
+                \\
+            , .{}),
+            else => return err,
+        };
     } else {
         try stderr.print("error: unknown command", .{});
         try stderr.print("{s}\n", .{usage});

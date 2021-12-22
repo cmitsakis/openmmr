@@ -24,7 +24,7 @@ pub fn printTeams(players: []types.Player) !void {
     const allocator = &arena.allocator;
 
     if ((players.len / 2) * 2 != players.len) {
-        return error.UnequalTeams;
+        return error.OddNumOfPlayers;
     }
 
     var total_rating_mu: f64 = 0;
