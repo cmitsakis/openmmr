@@ -195,5 +195,4 @@ fn lengthFloat(buf: []u8, f: f64) usize {
             return buf.len;
         },
     }
-    return str.len;
 }
