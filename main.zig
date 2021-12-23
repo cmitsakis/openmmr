@@ -52,6 +52,15 @@ pub fn main() !void {
         try stderr.print("{s}\n", .{usage});
         return;
     }
+    if (std.ascii.startsWithIgnoreCase(cmd, "he")) {
+        try stderr.print("error: unknown command '{s}'\n", .{cmd});
+        try stderr.print("maybe you meant 'help'?\n", .{});
+        return;
+    } else if (std.ascii.startsWithIgnoreCase(cmd, "li")) {
+        try stderr.print("error: unknown command '{s}'\n", .{cmd});
+        try stderr.print("maybe you meant 'license'?\n", .{});
+        return;
+    }
 
     var players_included = std.StringHashMap(emptyStruct).init(allocator);
     var players_excluded = std.StringHashMap(emptyStruct).init(allocator);
@@ -134,7 +143,12 @@ pub fn main() !void {
             else => return err,
         };
     } else {
-        try stderr.print("error: unknown command\n", .{});
+        try stderr.print("error: unknown command '{s}'\n", .{cmd});
+        if (std.ascii.startsWithIgnoreCase(cmd, "r")) {
+            try stderr.print("maybe you meant 'rank'?\n", .{});
+        } else if (std.ascii.startsWithIgnoreCase(cmd, "t")) {
+            try stderr.print("maybe you meant 'teams' or 'teams-from-rank'?\n", .{});
+        }
     }
 }
 
