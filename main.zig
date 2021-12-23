@@ -89,6 +89,10 @@ pub fn main() !void {
         }
     }
 
+    if (args.len <= 2) {
+        try stderr.print("error: no file argument\n", .{});
+        return;
+    }
     const filename = args[args.len - 1];
     // open file or stdin (if filename == "-")
     const file = if (!mem.eql(u8, filename, "-")) try std.fs.cwd().openFile(filename, .{}) else std.io.getStdIn();
