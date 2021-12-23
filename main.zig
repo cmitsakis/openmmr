@@ -33,7 +33,6 @@ pub fn main() !void {
 
     if (args.len <= 1) {
         try stderr.print("error: no arguments\n", .{});
-        try stderr.print("{s}\n", .{usage});
         return;
     }
 
@@ -136,7 +135,6 @@ pub fn main() !void {
         };
     } else {
         try stderr.print("error: unknown command\n", .{});
-        try stderr.print("{s}\n", .{usage});
     }
 }
 
