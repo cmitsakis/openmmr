@@ -131,7 +131,7 @@ pub fn main() !void {
             else => return err,
         };
     } else {
-        try stderr.print("error: unknown command", .{});
+        try stderr.print("error: unknown command\n", .{});
         try stderr.print("{s}\n", .{usage});
     }
 }
