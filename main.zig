@@ -24,7 +24,7 @@ const emptyStruct = struct {};
 pub fn main() !void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     defer arena.deinit();
-    const allocator = &arena.allocator;
+    const allocator = arena.allocator();
 
     const args = try std.process.argsAlloc(allocator);
 
@@ -72,7 +72,7 @@ pub fn main() !void {
                     try stderr.print("no file argument given\n", .{});
                     return;
                 }
-                var usernames = std.mem.tokenize(args[i], ",");
+                var usernames = std.mem.tokenize(u8, args[i], ",");
                 while (usernames.next()) |username| {
                     switch (included_or_excluded) {
                         1 => try players_included.put(username, .{}),
@@ -136,7 +136,7 @@ pub fn main() !void {
     }
 }
 
-fn filterPlayersInclude(allocator: *std.mem.Allocator, players: []types.Player, included: std.StringHashMap(emptyStruct)) ![]types.Player {
+fn filterPlayersInclude(allocator: std.mem.Allocator, players: []types.Player, included: std.StringHashMap(emptyStruct)) ![]types.Player {
     if (included.count() == 0) {
         return players;
     }
@@ -149,7 +149,7 @@ fn filterPlayersInclude(allocator: *std.mem.Allocator, players: []types.Player, 
     return players2.toOwnedSlice();
 }
 
-fn filterPlayersExclude(allocator: *std.mem.Allocator, players: []types.Player, excluded: std.StringHashMap(emptyStruct)) ![]types.Player {
+fn filterPlayersExclude(allocator: std.mem.Allocator, players: []types.Player, excluded: std.StringHashMap(emptyStruct)) ![]types.Player {
     if (excluded.count() == 0) {
         return players;
     }

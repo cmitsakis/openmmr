@@ -111,7 +111,7 @@ xattr -d com.apple.quarantine /path/to/openmmr
 
 ### Option 2: Build from source
 
-Requires [Zig](https://ziglang.org/) v0.8.1
+Requires [Zig](https://ziglang.org/) v0.9.0
 
 Run `zig build` at the root of the repository.
 

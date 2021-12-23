@@ -24,7 +24,7 @@ const Algorithm = enum {
     TM_full,
 };
 
-pub fn scoreByPlayerFromGames(allocator: *std.mem.Allocator, reader: std.fs.File.Reader) !std.StringHashMap(types.Rating) {
+pub fn scoreByPlayerFromGames(allocator: std.mem.Allocator, reader: std.fs.File.Reader) !std.StringHashMap(types.Rating) {
     var score_by_player = std.StringHashMap(types.Rating).init(allocator);
 
     var line_buf: [1024]u8 = undefined;
@@ -39,12 +39,12 @@ pub fn scoreByPlayerFromGames(allocator: *std.mem.Allocator, reader: std.fs.File
         }
         var arena_line = std.heap.ArenaAllocator.init(std.heap.page_allocator);
         defer arena_line.deinit();
-        const allocator_line = &arena_line.allocator;
+        const allocator_line = arena_line.allocator();
         const game = try parseGame(allocator_line, line);
         for (game.players) |team_usernames| {
             for (team_usernames) |username| {
                 if (!score_by_player.contains(username)) {
-                    const username2 = try std.mem.dupe(allocator, u8, username); // use 'allocator' instead of 'allocator_line' because usernames outlive this function
+                    const username2 = try allocator.dupe(u8, username); // use 'allocator' instead of 'allocator_line' because usernames outlive this function
                     try score_by_player.put(username2, types.Rating{ .mu = init_mu, .sigma = init_sigma });
                 }
             }
@@ -54,7 +54,7 @@ pub fn scoreByPlayerFromGames(allocator: *std.mem.Allocator, reader: std.fs.File
     return score_by_player;
 }
 
-pub fn scoreByPlayerToSliceOfPlayers(allocator: *std.mem.Allocator, score_by_player: std.StringHashMap(types.Rating)) ![]types.Player {
+pub fn scoreByPlayerToSliceOfPlayers(allocator: std.mem.Allocator, score_by_player: std.StringHashMap(types.Rating)) ![]types.Player {
     var players_rated = std.ArrayList(types.Player).init(allocator);
     var score_by_player_iterator = score_by_player.iterator();
     while (score_by_player_iterator.next()) |e| {
@@ -65,10 +65,10 @@ pub fn scoreByPlayerToSliceOfPlayers(allocator: *std.mem.Allocator, score_by_pla
     return players_rated_slice;
 }
 
-fn parseGame(allocator: *std.mem.Allocator, line: []const u8) !Game {
+fn parseGame(allocator: std.mem.Allocator, line: []const u8) !Game {
     var team_0 = std.ArrayList(types.Username).init(allocator);
     var team_1 = std.ArrayList(types.Username).init(allocator);
-    var tokens = std.mem.tokenize(line, " ");
+    var tokens = std.mem.tokenize(u8, line, " ");
     var team_seperator_seen = false;
     var rank: [2]c_int = undefined;
     while (tokens.next()) |token| {
@@ -103,7 +103,7 @@ fn parseGame(allocator: *std.mem.Allocator, line: []const u8) !Game {
     };
 }
 
-fn processGame(allocator: *std.mem.Allocator, score_by_player: *std.StringHashMap(types.Rating), game: Game, algo: Algorithm) !void {
+fn processGame(allocator: std.mem.Allocator, score_by_player: *std.StringHashMap(types.Rating), game: Game, algo: Algorithm) !void {
     var rank: [2]c_int = game.rank; // copy rank to a mutable var in order to use @ptrCast() later
     var teams_players_usernames: [2][]types.Username = undefined;
     var teams_players_mu: [2][*c]f64 = undefined;

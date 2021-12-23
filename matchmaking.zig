@@ -21,7 +21,7 @@ const Assignment = struct {
 pub fn printTeams(players: []types.Player) !void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     defer arena.deinit();
-    const allocator = &arena.allocator;
+    const allocator = arena.allocator();
 
     if ((players.len / 2) * 2 != players.len) {
         return error.OddNumOfPlayers;
@@ -62,7 +62,7 @@ pub fn printTeams(players: []types.Player) !void {
     for (team_assignments_slice) |assignment| {
         var arena_assignment = std.heap.ArenaAllocator.init(std.heap.page_allocator);
         defer arena_assignment.deinit();
-        const allocator_assignment = &arena_assignment.allocator;
+        const allocator_assignment = arena_assignment.allocator();
         var team_0_players = std.ArrayList(types.Username).init(allocator_assignment);
         var team_1_players = std.ArrayList(types.Username).init(allocator_assignment);
         b = assignment.binary;
@@ -83,14 +83,14 @@ pub fn printTeams(players: []types.Player) !void {
     }
 }
 
-pub fn readScores(allocator: *std.mem.Allocator, reader: std.fs.File.Reader) ![]types.Player {
+pub fn readScores(allocator: std.mem.Allocator, reader: std.fs.File.Reader) ![]types.Player {
     var players = std.ArrayList(types.Player).init(allocator);
     var line_buf: [1024]u8 = undefined;
     while (reader.readUntilDelimiterOrEof(&line_buf, '\n') catch |err| {
         return err;
     }) |line| {
-        var tokens = std.mem.tokenize(line, " ");
-        const player_username = try std.mem.dupe(allocator, u8, tokens.next().?);
+        var tokens = std.mem.tokenize(u8, line, " ");
+        const player_username = try allocator.dupe(u8, tokens.next().?);
         const player_rating_mu = try std.fmt.parseFloat(f64, tokens.next().?);
         const player_rating_sigma = try std.fmt.parseFloat(f64, tokens.next().?);
         const p: types.Player = types.Player{
